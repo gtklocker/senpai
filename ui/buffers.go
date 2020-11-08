@@ -352,6 +352,18 @@ func (bs *BufferList) idx(title string) int {
 	return -1
 }
 
+func (bs *BufferList) DrawVerticalNickList(screen tcell.Screen, x0, y0, width, height int) {
+	x0++
+	st := tcell.StyleDefault
+
+	for y := y0; y < y0+height; y++ {
+		for x := x0; x < x0+width; x++ {
+			screen.SetContent(x, y, ' ', nil, st)
+		}
+		screen.SetContent(x0-1, y, 0x2502, nil, st.Dim(true))
+	}
+}
+
 func (bs *BufferList) DrawVerticalBufferList(screen tcell.Screen, x0, y0, width, height int) {
 	width--
 	st := tcell.StyleDefault
