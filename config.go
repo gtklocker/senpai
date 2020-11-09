@@ -13,10 +13,11 @@ type Config struct {
 	User     string
 	Password *string
 
-	Highlights   []string
-	OnHighlight  string `yaml:"on-highlight"`
-	NickColWidth int    `yaml:"nick-column-width"`
-	ChanColWidth int    `yaml:"chan-column-width"`
+	Highlights    []string
+	OnHighlight   string   `yaml:"on-highlight"`
+	NickColWidth  int      `yaml:"nick-column-width"`
+	ChanColWidth  int      `yaml:"chan-column-width"`
+	NickListWidth int      `yaml:"nick-list-width"`
 
 	Debug bool
 }
@@ -28,6 +29,9 @@ func ParseConfig(buf []byte) (cfg Config, err error) {
 	}
 	if cfg.ChanColWidth <= 0 {
 		cfg.ChanColWidth = 16
+	}
+	if cfg.NickListWidth <= 0 {
+		cfg.NickListWidth = 16
 	}
 	return
 }

@@ -61,6 +61,9 @@ Some settings are required, the others are optional.
 *chan-column-width*
 	The number of cell that the column for channels occupies.  By default, 16.
 
+*nick-list-width*
+	The number of cells that the nick list occupies.  By default, 16.
+
 # EXAMPLES
 
 A minimal configuration file to connect to freenode as "Guest123456":

@@ -8,12 +8,11 @@ import (
 	"git.sr.ht/~taiite/senpai/irc"
 )
 
-const nickListColWidth = 15
-
 type Config struct {
-	NickColWidth int
-	ChanColWidth int
-	AutoComplete func(cursorIdx int, text []rune) []Completion
+	NickColWidth  int
+	ChanColWidth  int
+	NickListWidth int
+	AutoComplete  func(cursorIdx int, text []rune) []Completion
 }
 
 type UI struct {
@@ -207,18 +206,18 @@ func (ui *UI) InputEnter() (content string) {
 	return ui.e.Flush()
 }
 
-func (ui *UI) nickListColWidth() int {
+func (ui *UI) nickListWidth() int {
 	// TODO: also check for /query buffers when we get support
 	if !ui.bs.IsAtHome() {
-		return nickListColWidth
+		return ui.config.NickListWidth
 	}
 	return 0
 }
 
 func (ui *UI) Resize() {
 	w, h := ui.screen.Size()
-	ui.e.Resize(w - 9 - ui.config.ChanColWidth - ui.config.NickColWidth - ui.nickListColWidth())
-	ui.bs.ResizeTimeline(w-ui.config.ChanColWidth - ui.nickListColWidth(), h-2, ui.config.NickColWidth)
+	ui.e.Resize(w - 9 - ui.config.ChanColWidth - ui.config.NickColWidth - ui.nickListWidth())
+	ui.bs.ResizeTimeline(w-ui.config.ChanColWidth - ui.nickListWidth(), h-2, ui.config.NickColWidth)
 }
 
 func (ui *UI) Draw() {
@@ -229,10 +228,10 @@ func (ui *UI) Draw() {
 
 	ui.bs.DrawTimeline(ui.screen, ui.config.ChanColWidth, 0, ui.config.NickColWidth)
 	ui.bs.DrawVerticalBufferList(ui.screen, 0, 0, ui.config.ChanColWidth, h)
-	if ui.nickListColWidth() > 0 {
-		ui.bs.DrawVerticalNickList(ui.screen, w-ui.nickListColWidth(), 0, ui.nickListColWidth(), h)
+	if ui.nickListWidth() > 0 {
+		ui.bs.DrawVerticalNickList(ui.screen, w-ui.nickListWidth(), 0, ui.nickListWidth(), h)
 	}
-	ui.drawStatusBar(ui.config.ChanColWidth, h-2, w-ui.config.ChanColWidth-ui.nickListColWidth())
+	ui.drawStatusBar(ui.config.ChanColWidth, h-2, w-ui.config.ChanColWidth-ui.nickListWidth())
 
 	for x := ui.config.ChanColWidth; x < 9+ui.config.ChanColWidth+ui.config.NickColWidth; x++ {
 		ui.screen.SetContent(x, h-1, ' ', nil, tcell.StyleDefault)
