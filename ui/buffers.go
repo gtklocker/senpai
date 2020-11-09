@@ -192,6 +192,10 @@ func NewBufferList(tlWidth, tlHeight, nickColWidth int) BufferList {
 	}
 }
 
+func (bs *BufferList) IsAtHome() bool {
+	return bs.current == 0
+}
+
 func (bs *BufferList) SetMembers(title string, members []irc.Member) {
 	idx := bs.idx(title)
 	if idx < 0 {

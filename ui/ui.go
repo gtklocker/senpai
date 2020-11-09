@@ -207,21 +207,32 @@ func (ui *UI) InputEnter() (content string) {
 	return ui.e.Flush()
 }
 
+func (ui *UI) nickListColWidth() int {
+	// TODO: also check for /query buffers when we get support
+	if !ui.bs.IsAtHome() {
+		return nickListColWidth
+	}
+	return 0
+}
+
 func (ui *UI) Resize() {
 	w, h := ui.screen.Size()
-	ui.e.Resize(w - 9 - ui.config.ChanColWidth - ui.config.NickColWidth - nickListColWidth)
-	ui.bs.ResizeTimeline(w-ui.config.ChanColWidth - nickListColWidth, h-2, ui.config.NickColWidth)
+	ui.e.Resize(w - 9 - ui.config.ChanColWidth - ui.config.NickColWidth - ui.nickListColWidth())
+	ui.bs.ResizeTimeline(w-ui.config.ChanColWidth - ui.nickListColWidth(), h-2, ui.config.NickColWidth)
 }
 
 func (ui *UI) Draw() {
+	ui.Resize()
 	w, h := ui.screen.Size()
 
 	ui.e.Draw(ui.screen, 9+ui.config.ChanColWidth+ui.config.NickColWidth, h-1)
 
 	ui.bs.DrawTimeline(ui.screen, ui.config.ChanColWidth, 0, ui.config.NickColWidth)
 	ui.bs.DrawVerticalBufferList(ui.screen, 0, 0, ui.config.ChanColWidth, h)
-	ui.bs.DrawVerticalNickList(ui.screen, w-nickListColWidth, 0, nickListColWidth, h)
-	ui.drawStatusBar(ui.config.ChanColWidth, h-2, w-ui.config.ChanColWidth-nickListColWidth)
+	if ui.nickListColWidth() > 0 {
+		ui.bs.DrawVerticalNickList(ui.screen, w-ui.nickListColWidth(), 0, ui.nickListColWidth(), h)
+	}
+	ui.drawStatusBar(ui.config.ChanColWidth, h-2, w-ui.config.ChanColWidth-ui.nickListColWidth())
 
 	for x := ui.config.ChanColWidth; x < 9+ui.config.ChanColWidth+ui.config.NickColWidth; x++ {
 		ui.screen.SetContent(x, h-1, ' ', nil, tcell.StyleDefault)
