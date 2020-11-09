@@ -1,10 +1,13 @@
 package ui
 
 import (
+	"fmt"
+	"sort"
 	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~taiite/senpai/irc"
 )
 
 func IsSplitRune(r rune) bool {
@@ -165,6 +168,8 @@ type buffer struct {
 
 	scrollAmt int
 	isAtTop   bool
+
+	members []irc.Member
 }
 
 type BufferList struct {
@@ -185,6 +190,16 @@ func NewBufferList(tlWidth, tlHeight, nickColWidth int) BufferList {
 		tlHeight:     tlHeight,
 		nickColWidth: nickColWidth,
 	}
+}
+
+func (bs *BufferList) SetMembers(title string, members []irc.Member) {
+	idx := bs.idx(title)
+	if idx < 0 {
+		return
+	}
+
+	b := &bs.list[idx]
+	b.members = members
 }
 
 func (bs *BufferList) ResizeTimeline(tlWidth, tlHeight, nickColWidth int) {
@@ -352,6 +367,21 @@ func (bs *BufferList) idx(title string) int {
 	return -1
 }
 
+func prettifyMembers(members []irc.Member) []string {
+	privileged, unprivileged := []string{}, []string{}
+	for _, m := range members {
+		prettyName := fmt.Sprintf("%s%s", m.PowerLevel, m.Name.Name)
+		if len(m.PowerLevel) > 0 {
+			privileged = append(privileged, prettyName)
+		} else {
+			unprivileged = append(unprivileged, prettyName)
+		}
+	}
+	sort.Strings(privileged)
+	sort.Strings(unprivileged)
+	return append(privileged, unprivileged...)
+}
+
 func (bs *BufferList) DrawVerticalNickList(screen tcell.Screen, x0, y0, width, height int) {
 	x0++
 	st := tcell.StyleDefault
@@ -361,6 +391,18 @@ func (bs *BufferList) DrawVerticalNickList(screen tcell.Screen, x0, y0, width, h
 			screen.SetContent(x, y, ' ', nil, st)
 		}
 		screen.SetContent(x0-1, y, 0x2502, nil, st.Dim(true))
+	}
+
+	currentBuffer := bs.list[bs.current]
+	prettyMembers := prettifyMembers(currentBuffer.members)
+	for i, m := range prettyMembers {
+		if i+1 > height {
+			break
+		}
+		x := x0
+		y := y0+i
+		title := truncate(m, width-1, "\u2026")
+		printString(screen, &x, y, st, title)
 	}
 }
 

@@ -290,6 +290,16 @@ func (s *Session) Typings(target string) []string {
 	return res
 }
 
+func (s *Session) Channels() []string {
+	var channels []string
+	for _, c := range s.channels {
+		if s.IsChannel(c.Name) {
+			channels = append(channels, c.Name)
+		}
+	}
+	return channels
+}
+
 func (s *Session) ChannelsSharedWith(name string) []string {
 	var user *User
 	if u, ok := s.users[s.Casemap(name)]; ok {
@@ -887,12 +897,13 @@ func (s *Session) handle(msg Message) (err error) {
 		}
 
 		if nickCf == s.nickCf {
-			s.evts <- SelfNickEvent{
-				FormerNick: s.nick,
-				Time:       t,
-			}
+			formerNick := s.nick
 			s.nick = newNick
 			s.nickCf = newNickCf
+			s.evts <- SelfNickEvent{
+				FormerNick: formerNick,
+				Time:       t,
+			}
 		} else {
 			s.evts <- UserNickEvent{
 				User:       u,

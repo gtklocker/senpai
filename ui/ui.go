@@ -5,9 +5,10 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~taiite/senpai/irc"
 )
 
-const nickListColWidth = 9
+const nickListColWidth = 15
 
 type Config struct {
 	NickColWidth int
@@ -132,6 +133,10 @@ func (ui *UI) AddBuffer(title string) {
 
 func (ui *UI) RemoveBuffer(title string) {
 	_ = ui.bs.Remove(title)
+}
+
+func (ui *UI) SetMembers(buffer string, members []irc.Member) {
+	ui.bs.SetMembers(buffer, members)
 }
 
 func (ui *UI) AddLine(buffer string, highlight bool, line Line) {

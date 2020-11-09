@@ -129,6 +129,12 @@ func (app *App) handleIRCEvents(evs []irc.Event) {
 	}
 }
 
+func (app *App) updateMembers(buffer string) {
+	if app.s.IsChannel(buffer) {
+		app.win.SetMembers(buffer, app.s.Names(buffer))
+	}
+}
+
 func (app *App) handleIRCEvent(ev irc.Event) {
 	switch ev := ev.(type) {
 	case irc.RawMessageEvent:
@@ -160,6 +166,10 @@ func (app *App) handleIRCEvent(ev irc.Event) {
 			Body:      fmt.Sprintf("\x0314%s\x03\u2192\x0314%s\x03", ev.FormerNick, app.s.Nick()),
 			Highlight: true,
 		})
+		for _, c := range app.s.Channels() {
+			app.updateMembers(c)
+
+		}
 	case irc.UserNickEvent:
 		for _, c := range app.s.ChannelsSharedWith(ev.User.Name) {
 			app.win.AddLine(c, false, ui.Line{
@@ -168,10 +178,12 @@ func (app *App) handleIRCEvent(ev irc.Event) {
 				Body:      fmt.Sprintf("\x0314%s\x03\u2192\x0314%s\x03", ev.FormerNick, ev.User.Name),
 				Mergeable: true,
 			})
+			app.updateMembers(c)
 		}
 	case irc.SelfJoinEvent:
 		app.win.AddBuffer(ev.Channel)
 		app.s.RequestHistory(ev.Channel, time.Now())
+		app.updateMembers(ev.Channel)
 	case irc.UserJoinEvent:
 		app.win.AddLine(ev.Channel, false, ui.Line{
 			At:        time.Now(),
@@ -179,6 +191,7 @@ func (app *App) handleIRCEvent(ev irc.Event) {
 			Body:      fmt.Sprintf("\x033+\x0314%s\x03", ev.User.Name),
 			Mergeable: true,
 		})
+		app.updateMembers(ev.Channel)
 	case irc.SelfPartEvent:
 		app.win.RemoveBuffer(ev.Channel)
 	case irc.UserPartEvent:
@@ -188,6 +201,7 @@ func (app *App) handleIRCEvent(ev irc.Event) {
 			Body:      fmt.Sprintf("\x034-\x0314%s\x03", ev.User.Name),
 			Mergeable: true,
 		})
+		app.updateMembers(ev.Channel)
 	case irc.UserQuitEvent:
 		for _, c := range ev.Channels {
 			app.win.AddLine(c, false, ui.Line{
@@ -196,6 +210,7 @@ func (app *App) handleIRCEvent(ev irc.Event) {
 				Body:      fmt.Sprintf("\x034-\x0314%s\x03", ev.User.Name),
 				Mergeable: true,
 			})
+			app.updateMembers(c)
 		}
 	case irc.TopicChangeEvent:
 		app.win.AddLine(ev.Channel, false, ui.Line{
